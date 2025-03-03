@@ -23,7 +23,7 @@ function processContrast(msg, diagnostics, problems, settings, textDocument, has
 					uri: textDocument.uri,
 					range: Object.assign({}, diagnostic.range),
 				},
-				message: "Please increase the color contrast of the elements.",
+				message: msg.suggestion,
 			},
 		];
 	}

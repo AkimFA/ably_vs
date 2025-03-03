@@ -290,6 +290,14 @@ a:visited{
 	color: #FFFFFF;
 }
 
+#colorSuggestions {
+	border-collapse: collapse;
+}
+
+.colors {
+	padding: 10px
+}
+
 /* For the loading screen */
 .loader {
 	border: 5px solid #f3f3f3;

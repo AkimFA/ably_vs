@@ -1,4 +1,7 @@
 const { JSDOM } = require("jsdom");
+const { type } = require("os");
+const fs = require("fs")
+const path = require("path")
 const defaultFontColor = "#000000"; // Black
 const defaultBackgroundColor = "#ffffff"; // White
 
@@ -37,6 +40,9 @@ function parseColor(color) {
 
 function rgbToHex(rgb, type) {
   // console.log("Converting RGB to Hex:", rgb);
+  if (rgb == "rgba(0, 0, 0, 0)") {
+    return defaultBackgroundColor
+  }
   const match = rgb.match(/(\d+),\s*(\d+),\s*(\d+)/);
   if (!match) {
     if (type === "text") {
@@ -137,7 +143,53 @@ function isThereNoText (element) {
   }
   return true
 }
+
+// Get color scheme given a color
+async function getColorScheme(window, document) {
+  var bgColor = window.getComputedStyle(document.body).backgroundColor
+  bgColor = rgbToHex(bgColor, "background").replace("#","")
+
+  try {
+    const response = await fetch (
+      "https://www.thecolorapi.com/scheme?hex=" + bgColor + "&mode=complement"
+    );
+    const data = await response.json()
+    var colorData = data.colors
+
+    // Filter out duplicates
+    const names = colorData.map((item) => item.name.value)
+    colorData = colorData.filter((item, index) => !names.includes(item.name.value, index + 1))
+
+    // reformat data being passed
+    const colorScheme = (colorData).map(color => ({
+      hex: color.hex.value, 
+      textColor: getTextColorSuggestion(color.hex.value)}))
+
+    return colorScheme
+  } catch (error) {
+    console.log(error)
+    return [];
+  }
+}
   
+// Gives either white or black text color as the suggestion
+function getTextColorSuggestion(bgColor) {
+  let result = ""
+  let color = ""
+  whiteValue = parseFloat(getContrastRatio(bgColor, "#ffffff"));
+  blackValue = parseFloat(getContrastRatio(bgColor, "#000000"));
+  
+  if (whiteValue > blackValue) {
+    result = whiteValue;
+    color = "white"
+  } else {
+    result = blackValue
+    color = "black"
+  }
+
+  return color
+}
+
 function checkContrast(element, window, document, html, index) {
   let contrastIssue = "";
   // console.log("Checking contrast for element:", element.className);
@@ -161,6 +213,8 @@ function checkContrast(element, window, document, html, index) {
   // WCAG AAA : 7 - Normal, 4.5 - Large
   
   // console.log("Font Size: ", getFontSize(element, window));
+  const color = getTextColorSuggestion(bgColor);
+  const suggestion = `Use the color ${color} for the text.`
 
   if (getFontSize(element, window) < 24) {
     // Normal Size
@@ -193,31 +247,55 @@ function checkContrast(element, window, document, html, index) {
   // const elementEndIndex = elementStartIndex + element.textContent.length;
   const elementStartIndex = index + 1;
   const elementEndIndex = elementStartIndex + (element.outerHTML).indexOf(">") - 1;
-
+  
   // Only return the element if it has a color contrast issue
   if (elementStartIndex < 1 || elementEndIndex < 1) {
     return {
       contrastIssue: "",
       start: -1,
-      end: -1
+      end: -1,
+      suggestion: ""
     };
   } else {
     return {
       contrastIssue: contrastIssue,
       start: elementStartIndex,
-      end: elementEndIndex         
+      end: elementEndIndex,
+      suggestion: suggestion
     };
   }
 }
 
-function checkDocumentContrast(html) {
+async function checkDocumentContrast(html) {
 	// List of all the color contrast issues
 	const colorContrastIssues = [];
 
 	// Find all the elements with text content on the page
-	const dom = new JSDOM(html);
-	const document = dom.window.document;
+	const dom = new JSDOM(html, {resources: 'usable'});
+	const document = await dom.window.document;
 	const window = dom.window;
+
+  // Checks for external css file
+  const styleSheet = document.querySelector("link")
+  if (styleSheet != null) {
+    urlReg = /^(https?:\/\/)/;
+    var cssContent
+    if (urlReg.test(styleSheet.href)) {
+      const cssResponse = await fetch(styleSheet.href);
+      cssContent = await cssResponse.text();
+    } else {
+      const cssPath = path.resolve("./", styleSheet.href)
+      if (fs.existsSync(cssPath)) {
+        cssContent = await fs.promises.readFile(cssPath, 'utf8')
+      }
+    }
+    
+    // Add Css to document
+    const styleElement = dom.window.document.createElement('style');
+    styleElement.textContent = await cssContent;
+    dom.window.document.head.appendChild(styleElement);
+  }
+
 
 	// Find all the elements with text content on the page
 	const elements = document.querySelectorAll(
@@ -252,8 +330,18 @@ function checkDocumentContrast(html) {
       colorContrastIssues.splice(i, 1);
     }
   }
+
+  // Check if there is issues before getting color scheme
+  if (colorContrastIssues.length != 0) {
+    // Getting color scheme
+    var colorScheme = await getColorScheme(window, document)
+    // Adding color scheme to colorContractIssues to be passed to the server
+    colorContrastIssues.push(colorScheme);
+  } else {
+    colorContrastIssues.push([])
+  }
   
 	return colorContrastIssues;
 }
 
-module.exports = {checkDocumentContrast, getContrastRatio };
+module.exports = {checkDocumentContrast };

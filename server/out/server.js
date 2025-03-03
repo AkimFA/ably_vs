@@ -113,6 +113,7 @@ const processContrast = require("./validators/contrast");
 const countAttributes = require("./helpers/count-attributes");
 const { checkDocumentContrast } = require("./helpers/color-contrast");
 
+
 async function validateTextDocument(textDocument) {
   // In this simple example we get the settings for every validate run.
   const settings = await getDocumentSettings(textDocument.uri);
@@ -134,8 +135,12 @@ async function validateTextDocument(textDocument) {
   const WHATWGresult = await validator(WHATWG);
   WHATWGresult.errors.forEach((msg) => processWHATWG(msg, diagnostics, problems, settings, textDocument, hasDiagnosticRelatedInformationCapability))
   // Color Contrast
-  const contrastIssues = checkDocumentContrast(textDocument._content);
-  console.log(contrastIssues)
+  const contrastIssues = await checkDocumentContrast(textDocument._content);
+
+  // get color suggestion from the last added
+  const scheme = contrastIssues.pop();
+
+  // continue processing the rest of the contrast issues
   contrastIssues.forEach((msg) => processContrast(msg, diagnostics, problems, settings, textDocument, hasDiagnosticRelatedInformationCapability));
   // Sort the diagnostics by start's line number > column number > end's line number > column number > source
   diagnostics.sort((a, b) => 
@@ -147,8 +152,14 @@ async function validateTextDocument(textDocument) {
   );
   // Send the computed diagnostics to VSCode (must be done first).
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+  
+  // Add the color scheme to the diagnostic and send it to the client
+  diagnostics.push(scheme)
+
   // Add the score to the diagnostics and send it to the client
+  // console.log(text)
   const score = countAttributes(text);
+  // console.log(score)
   diagnostics.push(score);
   connection.sendNotification("custom/loadFiles", diagnostics);
 }

@@ -114,6 +114,14 @@
                     </div>
                 </div>
             </div>
+            <div id="scheme">
+                <h2 id="colorScheme"></h2>
+                <h3 id="colorSchemeNote"></h3>
+                <table id="colorSuggestions">
+
+                </table>
+
+            </div>
         </div>
     </div>
     <script>
@@ -145,6 +153,26 @@
 
         // Set the score value
         ablyScore.innerHTML = scorePercent;
+
+        // Color Scheme Names of colors and their hex values
+        let colorSchemeHex = "{{schemeHex}}".split("_");
+        let colorSchemeText = "{{schemeTextColors}}".split("_")
+
+        if (colorSchemeHex[0].length != 0) {
+            document.getElementById("colorScheme").innerHTML = "Color Scheme Suggestion"
+            document.getElementById("colorSchemeNote").innerHTML = "These are general suggestions which you could apply for any on the elements"
+            const table = document.getElementById("colorSuggestions");
+            let row
+            let cell 
+            for (let i = 0; i < colorSchemeHex.length; i++) {
+                row = table.insertRow(0);
+                cell = row.insertCell(0);
+                cell.classList.add("colors");
+                cell.innerHTML = `Background = ${colorSchemeHex[i]} <br> Text = ${colorSchemeText[i]}`;
+                cell.style.backgroundColor = colorSchemeHex[i];
+                cell.style.color = colorSchemeText[i];
+            }
+        }
 
         let suggestions = 0;
 
