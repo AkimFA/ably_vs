@@ -273,6 +273,9 @@ async function checkDocumentContrast(html) {
 	const document = dom.window.document;
 	const window = dom.window;
 
+  const styleSheet = document.querySelector("link");
+  console.log(__dirname + styleSheet.href)
+
 	// Find all the elements with text content on the page
 	const elements = document.querySelectorAll(
 	  "p, span, h1, h2, h3, h4, h5, h6, li, a, button, label, small, strong, em, div, td, th, caption"
