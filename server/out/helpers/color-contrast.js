@@ -1,5 +1,7 @@
 const { JSDOM } = require("jsdom");
 const { type } = require("os");
+const fs = require("fs")
+const path = require("path")
 const defaultFontColor = "#000000"; // Black
 const defaultBackgroundColor = "#ffffff"; // White
 
@@ -269,12 +271,31 @@ async function checkDocumentContrast(html) {
 	const colorContrastIssues = [];
 
 	// Find all the elements with text content on the page
-	const dom = new JSDOM(html);
-	const document = dom.window.document;
+	const dom = new JSDOM(html, {resources: 'usable'});
+	const document = await dom.window.document;
 	const window = dom.window;
 
-  const styleSheet = document.querySelector("link");
-  console.log(__dirname + styleSheet.href)
+  // Checks for external css file
+  const styleSheet = document.querySelector("link")
+  if (styleSheet != null) {
+    urlReg = /^(https?:\/\/)/;
+    var cssContent
+    if (urlReg.test(styleSheet.href)) {
+      const cssResponse = await fetch(styleSheet.href);
+      cssContent = await cssResponse.text();
+    } else {
+      const cssPath = path.resolve("./", styleSheet.href)
+      if (fs.existsSync(cssPath)) {
+        cssContent = await fs.promises.readFile(cssPath, 'utf8')
+      }
+    }
+    
+    // Add Css to document
+    const styleElement = dom.window.document.createElement('style');
+    styleElement.textContent = await cssContent;
+    dom.window.document.head.appendChild(styleElement);
+  }
+
 
 	// Find all the elements with text content on the page
 	const elements = document.querySelectorAll(
