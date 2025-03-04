@@ -289,10 +289,9 @@ async function checkDocumentContrast(html) {
         cssContent = await fs.promises.readFile(cssPath, 'utf8')
       }
     }
-    
     // Add Css to document
     const styleElement = dom.window.document.createElement('style');
-    styleElement.textContent = await cssContent;
+    styleElement.textContent = cssContent;
     dom.window.document.head.appendChild(styleElement);
   }
 

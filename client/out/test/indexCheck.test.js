@@ -24,7 +24,7 @@ test('Index check - no errors', async () => {
 	const data = await checkDocumentContrast(html);
 
 	// Assert
-	expect(data).toStrictEqual([]);
+	expect(data).toStrictEqual([[]]);
 })
 
 test('Index check - errors', async () => {
@@ -58,7 +58,7 @@ test('Index check with child background - no errors ', async () => {
     const data = await checkDocumentContrast(html);
 
     // Assert
-    expect(data).toStrictEqual([]);
+    expect(data).toStrictEqual([[]]);
 })
 
 test('Index check with child background - errors', async () => {
@@ -92,7 +92,7 @@ test('Nested index check - no errors', async () => {
 	const data = await checkDocumentContrast(html);
 
 	// Assert
-	expect(data).toStrictEqual([]);
+	expect(data).toStrictEqual([[]]);
 })
 
 test('Nested index check - errors', async () => {
@@ -126,7 +126,7 @@ test('Nested index check with child background - no errors', async () => {
     const data = await checkDocumentContrast(html);
 
     // Assert
-    expect(data).toStrictEqual([]);
+    expect(data).toStrictEqual([[]]);
 })
 
 test('Nested index check with child background - errors', async () => {
@@ -160,7 +160,7 @@ test('Nested index check with parent background colors - no errors', async () =>
     const data = await checkDocumentContrast(html);
 
     // Assert
-    expect(data).toStrictEqual([]);
+    expect(data).toStrictEqual([[]]);
 })
 
 test('Nested index check with parent background colors - errors', async () => {
@@ -194,7 +194,7 @@ test('Nested index check with parent background and child background - no errors
     const data = await checkDocumentContrast(html);
 
     // Assert
-    expect(data).toStrictEqual([]);
+    expect(data).toStrictEqual([[]]);
 })
 
 test('Nested index check with parent background and child background - errors', async () => {
@@ -228,7 +228,7 @@ test ('CSS styling index check - no errors', async () => {
     const data = await checkDocumentContrast(html);
 
     // Assert
-    expect(data).toStrictEqual([]);
+    expect(data).toStrictEqual([[]]);
 })
 
 test('CSS styling index check - errors', async () => {
@@ -244,6 +244,40 @@ test('CSS styling index check - errors', async () => {
     // Act
     const data = await checkDocumentContrast(html);
 
+    const actualString = html.substring(data[0].start, data[0].end);
+
+    // Assert
+    expect(actualString).toBe(string);
+})
+
+test('Stylesheet index check - no errors', async () => {
+    // Arrange 
+    const functionPath = "../../../server/out/helpers/color-contrast";
+    const {checkDocumentContrast} = require(functionPath);
+
+    const htmlFilePath = 'client/out/test/base/stylesheetNoError.html';
+    const html = await loadHTML(htmlFilePath);
+    
+    // Act
+    const data = await checkDocumentContrast(html);
+
+    // Assert
+    expect(data).toStrictEqual([[]]);
+})
+
+test('Stylesheet index check - errors', async () => {
+    // Arrange 
+    const functionPath = "../../../server/out/helpers/color-contrast";
+    const {checkDocumentContrast} = require(functionPath);
+
+    const htmlFilePath = 'client/out/test/base/stylesheetError.html';
+    const html = await loadHTML(htmlFilePath);
+    
+    const string = "p id=\"para\"";
+
+    // Act
+    const data = await checkDocumentContrast(html);
+    // console.log(html)
     const actualString = html.substring(data[0].start, data[0].end);
 
     // Assert
