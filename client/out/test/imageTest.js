@@ -15,13 +15,17 @@ app.post('/generate', async (req, res) => {
 	console.log(req.body)
     const {link,file} = req.body
 	let caption, original
+	var fileType = []
 	if (link != "") {
     	caption = await suggestAltText(link)
 		original = link
+		fileType = link.split(".")
 	} else {
 		caption = await suggestAltText(`${__dirname}/images/${file}`) 
 		original = file
+		fileType = file.split(".")
 	}
+
 	console.log(caption)
 	console.log(original)
     const response = await fetch(
@@ -32,18 +36,19 @@ app.post('/generate', async (req, res) => {
                 "Content-Type": "application/json"
             },
             method: "POST",
-            body: JSON.stringify(caption)
+            body: JSON.strinimage.pnggify(caption)
         }
     )
     const result = await response.blob()
+
     let ab = await result.arrayBuffer();
-	const binary = Buffer.from(new Uint8Array(ab), "base64").toString("base64")
+	const binary = Buffer.from(ab).toString("base64")
     
 	res.writeHead(200, {
 		'content-type': 'text/html'
 	});
 	res.write(`<img src=${original}>`)
-	res.write(`<img src="data:image/jpeg;base64,${binary}">`)
+	res.write(`<img src="data:image/${fileType[fileType.length - 1]};base64,${binary}">`)
 	
 	res.end()
 })
