@@ -283,3 +283,37 @@ test('Stylesheet index check - errors', async () => {
     // Assert
     expect(actualString).toBe(string);
 })
+
+test('Index and size check - no errors', async () => {
+    // Arrange 
+    const functionPath = "../../../server/out/helpers/color-contrast";
+    const {checkDocumentContrast} = require(functionPath);
+
+    const htmlFilePath = 'client/out/test/base/indexAndSizeNoError.html';
+    const html = await loadHTML(htmlFilePath);
+    
+    // Act
+    const data = await checkDocumentContrast(html);
+
+    // Assert
+    expect(data).toStrictEqual([[]]);
+})
+
+test('Index and size check - errors', async () => {
+    // Arrange 
+    const functionPath = "../../../server/out/helpers/color-contrast";
+    const {checkDocumentContrast} = require(functionPath);
+
+    const htmlFilePath = 'client/out/test/base/indexAndSizeError.html';
+    const html = await loadHTML(htmlFilePath);
+    
+    const string = "p style=\"color: #ff0000; font-size: 1em;\"";
+
+    // Act
+    const data = await checkDocumentContrast(html);
+    // console.log(html)
+    const actualString = html.substring(data[0].start, data[0].end);
+
+    // Assert
+    expect(actualString).toBe(string);
+})

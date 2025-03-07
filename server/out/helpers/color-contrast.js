@@ -198,19 +198,21 @@ function getTextColorSuggestion(bgColor, isBig) {
 
 function checkContrast(element, window, document, html, index) {
   let contrastIssue = "";
-  // console.log("Checking contrast for element:", element.className);
+  console.log("Checking contrast for element:", element);
   // Get the text and background colors of an element
   let textColor = rgbToHex(window.getComputedStyle(element).color, "text");
-  // console.log("Text color:", textColor);
+  console.log("Text color:", textColor);
 
   // Retrieves the backgroundcolor of the element, if none goes to the parent element
   let actualBg = element
   while (actualBg.localName != "body" && actualBg.style.backgroundColor == "") {
     actualBg = actualBg.parentElement
+    console.log(actualBg.outerHTML)
+    console.log(actualBg.style.backgroundColor)
   }  
 
   let bgColor = rgbToHex(window.getComputedStyle(actualBg).backgroundColor,"background");
-  // console.log("Background color:", bgColor);
+  console.log("Background color:", bgColor);
 
   const contrastRatio = getContrastRatio(textColor, bgColor);
   // console.log("Contrast ratio:", contrastRatio);
