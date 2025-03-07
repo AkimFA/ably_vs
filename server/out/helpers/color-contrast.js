@@ -118,7 +118,7 @@ function appendElement(level, contrast, element, document) {
         element.textContent +
         "' has a color contrast ratio of " +
         contrast +
-        ", which is below the WCAG minimum for Level AA - Large Text of 4.5";
+        ", which is below the WCAG minimum for Level AAA - Large Text of 4.5";
     }
     // console.log(colorChecked.textContent);
     return colorChecked.textContent;
@@ -173,21 +173,27 @@ async function getColorScheme(window, document) {
 }
   
 // Gives either white or black text color as the suggestion
-function getTextColorSuggestion(bgColor) {
-  let result = ""
+function getTextColorSuggestion(bgColor, isBig) {
   let color = ""
+  let result = ""
   whiteValue = parseFloat(getContrastRatio(bgColor, "#ffffff"));
   blackValue = parseFloat(getContrastRatio(bgColor, "#000000"));
   
   if (whiteValue > blackValue) {
-    result = whiteValue;
-    color = "white"
+    color = "#ffffff"
+    result = "white"
   } else {
-    result = blackValue
-    color = "black"
+    color = "#000000"
+    result = "black"
   }
 
-  return color
+  const suggestedContrast = getContrastRatio(color, bgColor)
+  console.log(suggestedContrast)
+  if ((suggestedContrast < 4.5 && isBig) || (suggestedContrast < 7 && !isBig)) {
+    result = "cannot suggest"
+  }
+  console.log(result)
+  return result
 }
 
 function checkContrast(element, window, document, html, index) {
@@ -213,34 +219,42 @@ function checkContrast(element, window, document, html, index) {
   // WCAG AAA : 7 - Normal, 4.5 - Large
   
   // console.log("Font Size: ", getFontSize(element, window));
-  const color = getTextColorSuggestion(bgColor);
-  const suggestion = `Use the color ${color} for the text.`
-
+  
+  var isBig = false;
   if (getFontSize(element, window) < 24) {
     // Normal Size
     if (contrastRatio < 4.5) {
       // Level AA
       contrastIssue += appendElement("11", contrastRatio, element, document);
       contrastIssue += "\n";
-    }
-    if (contrastRatio < 7) {
+    } else if (contrastRatio < 7) {
       // Level AAA
       contrastIssue += appendElement("12", contrastRatio, element, document);
       contrastIssue += "\n";
     }
   } else {
+    isBig = true;
     // Large Size
     if (contrastRatio < 3) {
       // Level AA
       contrastIssue += appendElement("21", contrastRatio, element, document);
       contrastIssue += "\n";
-    }
-    if (contrastRatio < 4.5) {
+    } else if (contrastRatio < 4.5) {
       // Level AAA
       contrastIssue += appendElement("22", contrastRatio, element, document);
       contrastIssue += "\n";
     }
   }
+
+  const color = getTextColorSuggestion(bgColor, isBig);
+  var suggestion;
+  if (color == "cannot suggest") {
+    suggestion = `Use a color with higher contrast for the text.`;
+  } else {
+    suggestion = `Use the color ${color} for the text.`;
+  }
+  
+  
 
   // Find the index of the element's HTML within the document's HTML
   // const elementStartIndex = index + (element.outerHTML).lastIndexOf(">" + element.textContent) + 1;
