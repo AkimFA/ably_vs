@@ -9,6 +9,7 @@ const bodyParser = require('body-parser');
 
 app.use(express.json())
 app.use(bodyParser.urlencoded({extended:true}));
+app.use(express.static(path.join(__dirname, 'images'))) // images to test are saved in the images folder
 
 app.post('/generate', async (req, res) => {
 	console.log(req.body)
@@ -18,9 +19,8 @@ app.post('/generate', async (req, res) => {
     	caption = await suggestAltText(link)
 		original = link
 	} else {
-		const folderPath = "" // insert path to folder containing your images for test
-		caption = await suggestAltText(folderPath + file)
-		original = `"${file}"`
+		caption = await suggestAltText(`${__dirname}/images/${file}`) 
+		original = file
 	}
 	console.log(caption)
 	console.log(original)
@@ -42,7 +42,7 @@ app.post('/generate', async (req, res) => {
 	res.writeHead(200, {
 		'content-type': 'text/html'
 	});
-	if (link != "" && file == "") res.write(`<img src=${original}>`)
+	if (original != "") res.write(`<img src=${original}>`)
 	res.write(`<img src="data:image/jpeg;base64,${binary}">`)
 	
 	res.end()
