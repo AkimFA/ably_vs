@@ -291,15 +291,16 @@ async function checkDocumentContrast(html) {
 
 
   // Checks for external css file
-  const styleSheet = document.querySelector("link")
-  if (styleSheet != null) {
+  const styleSheets = document.querySelectorAll("link")
+
+  for (let i = 0; i < styleSheets.length; i++) {
     urlReg = /^(https?:\/\/)/;
     var cssContent
-    if (urlReg.test(styleSheet.href)) {
-      const cssResponse = await fetch(styleSheet.href);
+    if (urlReg.test(styleSheets[i].href)) {
+      const cssResponse = await fetch(styleSheets[i].href);
       cssContent = await cssResponse.text();
     } else {
-      const cssPath = path.resolve("./", styleSheet.href)
+      const cssPath = path.resolve("./", styleSheets[i].href)
       if (fs.existsSync(cssPath)) {
         cssContent = await fs.promises.readFile(cssPath, 'utf8')
       }
