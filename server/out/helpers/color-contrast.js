@@ -198,14 +198,14 @@ function getTextColorSuggestion(bgColor, isBig) {
 
 function checkContrast(element, window, document, html, index) {
   let contrastIssue = "";
-  // console.log("Checking contrast for element:", element.className);
+  // console.log("Checking contrast for element:", element);
   // Get the text and background colors of an element
   let textColor = rgbToHex(window.getComputedStyle(element).color, "text");
   // console.log("Text color:", textColor);
 
   // Retrieves the backgroundcolor of the element, if none goes to the parent element
   let actualBg = element
-  while (actualBg.localName != "body" && actualBg.style.backgroundColor == "") {
+  while (actualBg.localName != "body" && window.getComputedStyle(actualBg).backgroundColor == "rgba(0, 0, 0, 0)") {
     actualBg = actualBg.parentElement
   }  
 
@@ -286,8 +286,9 @@ async function checkDocumentContrast(html) {
 
 	// Find all the elements with text content on the page
 	const dom = new JSDOM(html, {resources: 'usable'});
-	const document = await dom.window.document;
+	const document = dom.window.document;
 	const window = dom.window;
+
 
   // Checks for external css file
   const styleSheet = document.querySelector("link")
@@ -303,13 +304,13 @@ async function checkDocumentContrast(html) {
         cssContent = await fs.promises.readFile(cssPath, 'utf8')
       }
     }
-    
     // Add Css to document
     const styleElement = dom.window.document.createElement('style');
-    styleElement.textContent = await cssContent;
+    styleElement.textContent = cssContent;
     dom.window.document.head.appendChild(styleElement);
   }
-
+  // console.log(document)
+  // console.log(dom.window.document)
 
 	// Find all the elements with text content on the page
 	const elements = document.querySelectorAll(
