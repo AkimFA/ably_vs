@@ -36,7 +36,7 @@ app.post('/generate', async (req, res) => {
                 "Content-Type": "application/json"
             },
             method: "POST",
-            body: JSON.strinimage.pnggify(caption)
+            body: JSON.stringify(caption)
         }
     )
     const result = await response.blob()
